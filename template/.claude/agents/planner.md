@@ -82,6 +82,62 @@ Ao final de todo plano, você DEVE:
    - Listar as opções mais comuns: Trello, ClickUp, Linear, Jira
 4. **Nunca pular essa etapa.** Todo plano gera rastreabilidade. Plano sem board é plano que se perde.
 
+### 8. Cards vs Checklists — quando usar cada um
+
+Nem toda task merece um card individual. Use checklists (subtarefas dentro de um card) para reduzir ruído e manter o board navegável.
+
+**Criar UM card com checklist quando as tasks:**
+- Compartilham o mesmo objetivo/entregável (ex: "Testes unitários para lib/")
+- Têm o mesmo dono/agente responsável
+- Estão na mesma fase/timeline
+- São individualmente pequenas (tamanho P) ou são subtarefas de um esforço maior
+- Não precisam de discussão/comentários individuais
+
+**Criar cards SEPARADOS quando as tasks:**
+- Têm donos/agentes diferentes
+- Têm prioridades diferentes (ex: um é CRÍTICO, outro é MÉDIO)
+- São independentemente agendáveis e entregáveis
+- São complexas o suficiente para ter seus próprios comentários e discussão
+- Têm decisões pendentes que bloqueiam apenas aquela task
+
+**Exemplo prático:**
+```
+ERRADO (6 cards):
+  - Card: "Testes para redis.ts"
+  - Card: "Testes para fingerprint.ts"
+  - Card: "Testes para usage-tracker.ts"
+  - Card: "Testes para file-validator.ts"
+  - Card: "Testes para rate-limit.ts"
+  - Card: "Testes para validation-schemas.ts"
+
+CERTO (1 card + checklist):
+  - Card: "Testes unitários para lib/"
+    - [ ] redis.ts (Redis + fallback in-memory)
+    - [ ] fingerprint.ts (geração, consistência, edge cases)
+    - [ ] usage-tracker.ts (incremento, reset mensal, limites)
+    - [ ] security/file-validator.ts
+    - [ ] security/rate-limit.ts
+    - [ ] security/validation-schemas.ts
+```
+
+### 9. Formatação de cards no Trello
+
+Ao criar ou atualizar cards via MCP:
+
+- **Descrição:** Usar quebras de linha REAIS no parâmetro, nunca `\n` literal
+- **Estrutura padrão da descrição:**
+  ```
+  **Tamanho:** P/M/G
+
+  **Responsável:** @agente
+
+  **Prioridade:** CRÍTICO/ALTO/MÉDIO/BAIXO
+
+  Contexto e detalhes da task.
+  ```
+- **Labels:** Sempre aplicar label de prioridade. Adicionar "DECISÃO PENDENTE" (purple) quando aplicável.
+- **Checklists:** Cada item deve ser específico e verificável, não genérico.
+
 ## Regras
 
 - Você NÃO escreve código. Planeja.
