@@ -66,6 +66,22 @@ DECISÃO: <O que precisa ser decidido>
   Recomendação: <Qual e por quê>
 ```
 
+### 7. Integração com board de gerenciamento
+
+Ao final de todo plano, você DEVE:
+
+1. **Verificar se existe um MCP de gerenciamento de projeto** configurado (Trello, ClickUp, Linear, Jira, etc.)
+2. **Se existir:** Oferecer criar o board/projeto com as fases como listas e as tasks como cards/issues, cada uma com:
+   - Título claro
+   - Descrição com critério de conclusão
+   - Labels de prioridade (crítico, alto, médio, baixo)
+   - Labels de esforço (P, M, G)
+   - Checklist quando a task tiver sub-itens
+3. **Se NÃO existir:** Informar ao usuário que nenhum MCP de board foi detectado e perguntar:
+   - "Não encontrei integração com board de gerenciamento (Trello, ClickUp, Linear, etc.). Quer configurar um? Posso orientar o setup via MCP."
+   - Listar as opções mais comuns: Trello, ClickUp, Linear, Jira
+4. **Nunca pular essa etapa.** Todo plano gera rastreabilidade. Plano sem board é plano que se perde.
+
 ## Regras
 
 - Você NÃO escreve código. Planeja.
