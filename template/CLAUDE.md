@@ -53,7 +53,7 @@ Toda entrega de codigo passa pelo pipeline completo, sem excecao:
 - **@security** audita seguranca: OWASP, injection, headers, rate limit
 - **@reviewer** consolida os dois relatorios e decide: aprovado ou reprovado
 - **@planner** formata o resultado para o Trello — SEMPRE, aprovado ou reprovado
-- Comentarios no Trello sao POR ETAPA (VALIDACAO, AUDITORIA, REVISAO, PLANO)
+- 1 comentario consolidado por card por execucao do pipeline (contendo VALIDACAO, AUDITORIA, REVISAO, PLANO)
 - Reprovacao de QUALQUER agente reinicia o ciclo completo apos correcao
 - Correcoes vao no card existente; descobertas novas viram card novo
 - Historico de reprovacoes no Trello e sagrado — nunca apagar, nunca pular

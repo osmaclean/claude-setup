@@ -29,7 +29,7 @@ Codigo pronto
 
 1. **@planner SEMPRE participa** — mesmo quando tudo e aprovado, ele formata o relatorio final para o Trello
 2. **Reprovacao de QUALQUER agente** aciona o fluxo completo de correcao — nao importa se os outros aprovaram
-3. **Comentarios no Trello sao POR ETAPA** — um comentario para cada agente: VALIDACAO (@tester), AUDITORIA (@security), REVISAO (@reviewer), PLANO (@planner)
+3. **1 comentario consolidado por card por execucao do pipeline** — contendo as 4 etapas (VALIDACAO, AUDITORIA, REVISAO, PLANO) num unico bloco
 4. **Correcoes vao no card existente** — adicionar comentario de reprovacao, corrigir, rodar o ciclo novamente, adicionar comentario de aprovacao
 5. **Descobertas genuinamente novas** (algo que nao era escopo do card original) viram **card novo**
 6. **Nenhum card vai para Done/Completed** sem passar por TODOS os 4 agentes
@@ -37,30 +37,40 @@ Codigo pronto
 
 ## Formato dos comentarios no Trello
 
-### Aprovacao
+**1 comentario por card por execucao do pipeline.** As 4 etapas ficam num unico bloco:
+
 ```
-VALIDACAO @tester — APROVADO
+PIPELINE QA — [DATA]
+
+VALIDACAO @tester — [APROVADO/REPROVADO]
 [resumo do que foi validado e resultado]
 
+AUDITORIA @security — [APROVADO/REPROVADO]
+[resumo da auditoria e vulnerabilidades]
+
+REVISAO @reviewer — [APROVADO/REPROVADO]
+[analise consolidada, veredito final]
+
+PLANO @planner — [STATUS]
+[acoes corretivas se reprovado, ou confirmacao se aprovado]
+```
+
+Apos correcao de reprovacao, uma NOVA execucao do pipeline gera um NOVO comentario completo no mesmo card:
+
+```
+PIPELINE QA (re-validacao) — [DATA]
+
+VALIDACAO @tester — APROVADO
+[o que foi corrigido e resultado]
+
 AUDITORIA @security — APROVADO
-[resumo da auditoria e resultado]
+[re-auditoria confirmada]
 
 REVISAO @reviewer — APROVADO
-[analise consolidada]
+[consolidacao final]
 
 PLANO @planner — CONCLUIDO
-[formatacao final e status]
-```
-
-### Reprovacao
-```
-VALIDACAO @tester — REPROVADO
-[detalhes do que falhou, evidencias]
-
--- apos correcao --
-
-VALIDACAO @tester — APROVADO (re-validacao)
-[o que foi corrigido e resultado]
+[confirmacao de conclusao]
 ```
 
 ## Retroatividade

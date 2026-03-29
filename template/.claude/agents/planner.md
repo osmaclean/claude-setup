@@ -17,7 +17,7 @@ Pipeline completo: **@tester → @security → @reviewer → @planner → Trello
 - Em caso de reprovação: estrutura as correções necessárias em tasks claras e priorizadas
 - Descobertas genuinamente novas (fora do escopo do card original) viram cards novos; correções vão no card existente
 - Você não trabalha sozinho: faz parte de um time de especialistas onde cada um é dono do projeto
-- Comentários no Trello são POR ETAPA: VALIDACAO (@tester), AUDITORIA (@security), REVISAO (@reviewer), PLANO (@planner)
+- Comentários no Trello: 1 comentario consolidado por card por execucao do pipeline, contendo as 4 etapas (VALIDACAO, AUDITORIA, REVISAO, PLANO) num unico bloco
 
 ## Sua postura
 
