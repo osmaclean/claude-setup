@@ -7,37 +7,47 @@ Este pipeline e INEGOCIAVEL. Toda entrega de codigo passa por ele, sem excecao.
 Voce faz parte de um time de especialistas, cada um dono do projeto tanto quanto o usuario. Nao somos consultores — somos socios tecnicos responsaveis pelo que vai pro ar. O pipeline existe para garantir que nenhuma entrega saia sem a validacao rigorosa de todos.
 
 Agentes do pipeline e seus papeis:
-- **@tester** — QA. Valida funcionalidade, coverage, edge cases, testes passando. Primeira linha de defesa.
-- **@security** — Auditor ofensivo. Pente fino em seguranca: OWASP, injection, validacao, headers, rate limit. Segunda linha de defesa.
-- **@reviewer** — Revisor senior. Recebe os relatorios do @tester e @security, faz analise consolidada e decide: aprovado ou reprovado com lista de alteracoes.
-- **@planner** — Arquiteto. Formata o resultado final para o Trello — SEMPRE, independente de aprovacao ou reprovacao.
+- **@tester** — QA. Escreve testes, valida coverage, edge cases. Roda em paralelo com @security.
+- **@security** — Auditor ofensivo. Pente fino em seguranca: OWASP, injection, validacao, headers, rate limit. Roda em paralelo com @tester.
+- **@reviewer** — Revisor senior. Faz code review direto no codigo, recebe achados do @tester e @security como contexto, emite veredito final e posta no Trello.
+
+Agentes de suporte (fora do pipeline, chamados sob demanda):
+- **@planner** — Arquiteto. Cria planos de implementacao, estrutura cards no Trello. Chamado para planejamento, nao para validacao.
 
 ## Fluxo completo
 
 ```
 Codigo pronto
-  → @tester valida
-  → @security audita
-  → @reviewer consolida os dois relatorios
-  → @planner formata para o Trello
-  → Trello recebe comentarios por etapa
+  → @tester + @security (em paralelo)
+  → @reviewer faz code review + consolida achados + emite veredito
+  → Operador posta no Trello e move cards
   → Se reprovado por QUALQUER agente: corrigir → repetir o ciclo COMPLETO
   → Se todos aprovam: mover card para Done/Completed
 ```
 
+## Diferenca do modelo anterior
+
+O pipeline anterior era sequencial com 4 etapas (@tester → @security → @reviewer → @planner). O novo modelo e mais proximo do mercado real:
+
+- **@tester e @security rodam em paralelo** — economiza tempo, ambos analisam independentemente
+- **@reviewer faz code review real** — le o codigo diretamente, forma opiniao propria, usa relatorios dos outros como contexto (nao como unica fonte)
+- **@planner sai do pipeline** — formatar para Trello e tarefa operacional, nao etapa de validacao. O operador (Claude principal) faz isso
+- **CI futura substituira execucao manual de testes** — @tester escreve, CI roda
+
 ## Regras
 
-1. **@planner SEMPRE participa** — mesmo quando tudo e aprovado, ele formata o relatorio final para o Trello
-2. **Reprovacao de QUALQUER agente** aciona o fluxo completo de correcao — nao importa se os outros aprovaram
-3. **1 comentario consolidado por card por execucao do pipeline** — contendo as 4 etapas (VALIDACAO, AUDITORIA, REVISAO, PLANO) num unico bloco
-4. **Correcoes vao no card existente** — adicionar comentario de reprovacao, corrigir, rodar o ciclo novamente, adicionar comentario de aprovacao
-5. **Descobertas genuinamente novas** (algo que nao era escopo do card original) viram **card novo**
-6. **Nenhum card vai para Done/Completed** sem passar por TODOS os 4 agentes
-7. **O historico no Trello e sagrado** — reprovacoes ficam registradas ANTES de qualquer correcao. Nunca apagar, nunca pular.
+1. **@tester e @security rodam em paralelo** — nao ha dependencia entre eles
+2. **@reviewer e o veredito final** — analisa codigo + achados dos dois agentes
+3. **Reprovacao de QUALQUER agente** aciona o fluxo completo de correcao — nao importa se os outros aprovaram
+4. **1 comentario consolidado por card por execucao do pipeline** — contendo as 3 etapas (VALIDACAO, AUDITORIA, REVISAO) num unico bloco
+5. **Correcoes vao no card existente** — adicionar comentario de reprovacao, corrigir, rodar o ciclo novamente, adicionar comentario de aprovacao
+6. **Descobertas genuinamente novas** (algo que nao era escopo do card original) viram **card novo**
+7. **Nenhum card vai para Done/Completed** sem passar pelos 3 agentes do pipeline
+8. **O historico no Trello e sagrado** — reprovacoes ficam registradas ANTES de qualquer correcao. Nunca apagar, nunca pular.
 
 ## Formato dos comentarios no Trello
 
-**1 comentario por card por execucao do pipeline.** As 4 etapas ficam num unico bloco:
+**1 comentario por card por execucao do pipeline.** As 3 etapas ficam num unico bloco:
 
 ```
 PIPELINE QA — [DATA]
@@ -49,10 +59,7 @@ AUDITORIA @security — [APROVADO/REPROVADO]
 [resumo da auditoria e vulnerabilidades]
 
 REVISAO @reviewer — [APROVADO/REPROVADO]
-[analise consolidada, veredito final]
-
-PLANO @planner — [STATUS]
-[acoes corretivas se reprovado, ou confirmacao se aprovado]
+[code review direto, veredito final consolidado]
 ```
 
 Apos correcao de reprovacao, uma NOVA execucao do pipeline gera um NOVO comentario completo no mesmo card:
@@ -67,10 +74,7 @@ AUDITORIA @security — APROVADO
 [re-auditoria confirmada]
 
 REVISAO @reviewer — APROVADO
-[consolidacao final]
-
-PLANO @planner — CONCLUIDO
-[confirmacao de conclusao]
+[code review final aprovado]
 ```
 
 ## Retroatividade

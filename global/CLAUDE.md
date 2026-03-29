@@ -41,6 +41,18 @@ Maclean, dev pleno na Direcional Engenharia. Dono dos projetos que trabalho com 
 - NÃO ignorar erros de lint ou TypeScript
 - Se documentação contradiz código: PARAR e perguntar qual está correto
 
+### Pipeline QA (obrigatorio em todo projeto)
+Toda entrega de codigo passa pelo pipeline completo, sem excecao:
+- **(@tester + @security) em paralelo → @reviewer → Trello**
+- @tester escreve testes e valida coverage; @security audita seguranca — ambos rodam em paralelo
+- @reviewer faz code review direto no codigo, usa achados dos outros como contexto, emite veredito final
+- @planner nao faz parte do pipeline — e chamado sob demanda para planejamento
+- Reprovacao de QUALQUER agente reinicia o ciclo completo
+- 1 comentario consolidado por card por execucao do pipeline (contendo VALIDACAO, AUDITORIA, REVISAO)
+- Correcoes no card existente; descobertas novas viram card novo
+- Historico de reprovacoes e sagrado — nunca apagar, nunca pular
+- Regra detalhada em `.claude/rules/qa-pipeline.md` de cada projeto
+
 ### Qualidade
 - Toda feature nova precisa de testes
 - Documentação deve refletir o estado real do código
