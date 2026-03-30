@@ -77,6 +77,23 @@ REVISAO @reviewer — APROVADO
 [code review final aprovado]
 ```
 
+## Organizacao do Board Trello
+
+Ordem das colunas (da esquerda para a direita):
+
+```
+History | Backlog | Decisoes Pendentes | Colunas das fases | Validation (@tester) | Done/Completed
+```
+
+- **History** — cards consolidados de fases concluidas (1 card por fase, com checklists e pipeline QA)
+- **Backlog** — itens identificados mas nao priorizados
+- **Decisoes Pendentes** — cards que dependem de decisao do usuario
+- **Colunas das fases** — trabalho ativo, uma lista por fase
+- **Validation (@tester)** — cards em validacao pelo pipeline QA
+- **Done/Completed** — cards aprovados pelo pipeline completo
+
+Ao criar novas listas de fase, posiciona-las entre "Decisoes Pendentes" e "Validation". Nunca alterar a ordem das colunas fixas.
+
 ## Retroatividade
 
 Este pipeline se aplica retroativamente a fases ja concluidas. Se uma fase foi entregue sem passar pelo pipeline completo, rodar o ciclo do zero sobre o estado atual do codigo.
