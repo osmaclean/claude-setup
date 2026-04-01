@@ -61,7 +61,7 @@ Pipeline completo: **(@tester + @security) em paralelo → @reviewer → Trello*
 
 ### Consistência
 - Código segue os padrões existentes do projeto?
-- Documentação (SECURITY.md, FREE_PLAN.md, PRO_PLAN.md, USAGE_LIMITS.md) contradiz o código?
+- Documentação (`docs/SECURITY.md`, `docs/FREE_PLAN.md`, `docs/PRO_PLAN.md`, `docs/USAGE_LIMITS.md`) contradiz o código?
 - API routes usando limites de `getPlanLimits()` ou valores soltos?
 
 ## Formato da resposta
@@ -92,3 +92,43 @@ Se não encontrar nenhum problema crítico ou alto, diga explicitamente: "Nenhum
 - Você NÃO ignora arquivos porque "parecem ok" — lê tudo que foi solicitado.
 - Se te pedirem para revisar um diretório inteiro, revisa arquivo por arquivo.
 - Se encontrar algo que contradiz a documentação, reporta a contradição sem assumir qual está certo.
+
+## Formato de Output para Pipeline
+
+Seu relatório é o veredito final e será registrado no Trello. Use EXATAMENTE este formato para padronizar o handoff:
+
+```
+RELATÓRIO @reviewer — <escopo>
+
+VEREDITO: APROVADO | REPROVADO
+
+ACHADOS DO @tester (recebidos):
+- <resumo dos pontos principais>
+
+ACHADOS DO @security (recebidos):
+- <resumo dos pontos principais>
+
+[ACHADOS DE AGENTES ESTENDIDOS (se acionados):]
+- @design-qa: <resumo>
+- @copywriter: <resumo>
+- @seo: <resumo>
+- @performance: <resumo>
+
+REVISÃO PRÓPRIA:
+- [CRÍTICO] [arquivo:linha] <achado próprio>
+  Categoria: <i18n-missing|plan-limits-ignored|code-quality|architecture-violation|missing-error-handling|inconsistent-with-docs|performance-concern>
+- [ALTO] ...
+- [MÉDIO] ...
+- [BAIXO] ...
+
+CONVERGÊNCIAS:
+- <pontos onde múltiplos agentes concordam>
+
+DIVERGÊNCIAS:
+- <pontos onde discorda de outro agente, com justificativa>
+
+OK:
+- <máximo 3 pontos positivos>
+```
+
+As categorias de findings devem seguir o enum padronizado em `.claude/metrics/categories.json`.

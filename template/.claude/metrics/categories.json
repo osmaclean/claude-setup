@@ -1,0 +1,67 @@
+{
+  "_schema_version": 1,
+  "_description": "Enum padronizado de categorias de reprovação por agente. Consumido pelo @analyst para parsing e pelos agentes do pipeline para categorizar findings. Single source of truth.",
+
+  "tester": {
+    "low-coverage": "Coverage abaixo do mínimo (90%) no módulo alterado",
+    "missing-edge-case": "Edge case relevante não coberto por testes",
+    "flaky-test": "Teste intermitente que passa/falha sem mudança de código",
+    "missing-test-type": "Tipo de teste ausente (unit, integration, E2E) para o cenário"
+  },
+
+  "security": {
+    "xss": "Cross-site scripting — input não sanitizado renderizado no DOM",
+    "injection": "Injection (SQL, command, template) — input usado em operação sem sanitização",
+    "missing-validation": "Input de usuário não validado ou validado apenas no client-side",
+    "missing-rate-limit": "API route sem rate limiting ou com limite inadequado",
+    "missing-headers": "Header de segurança ausente ou mal configurado (CSP, HSTS, etc)",
+    "sensitive-data-exposure": "Dados sensíveis expostos em logs, DOM, console, ou resposta de erro",
+    "broken-access-control": "Bypass de limites de plano, acesso a recursos de outros usuários"
+  },
+
+  "reviewer": {
+    "i18n-missing": "Texto visível ao usuário sem usar t() ou key faltando em algum idioma",
+    "plan-limits-ignored": "Limite de plano hardcoded em vez de usar getPlanLimits()/limits.ts",
+    "code-quality": "Problema de qualidade (any, duplicação, componente >500 linhas, etc)",
+    "architecture-violation": "Violação de padrão arquitetural do projeto",
+    "missing-error-handling": "Erro não tratado ou tratamento inadequado",
+    "inconsistent-with-docs": "Código contradiz documentação existente",
+    "performance-concern": "Impacto de performance identificado no code review"
+  },
+
+  "design-qa": {
+    "layout-divergence": "Layout implementado diferente do spec (grid, alinhamento, proporções)",
+    "missing-state": "Estado de UI ausente (hover, disabled, loading, error, empty)",
+    "animation-mismatch": "Animação diferente do spec (duração, easing, comportamento)",
+    "responsive-issue": "Comportamento incorreto em algum breakpoint ou mobile",
+    "a11y-visual": "Problema visual de acessibilidade (contraste, focus state, touch target)",
+    "design-system-violation": "Uso de valores hardcoded em vez de tokens do design system"
+  },
+
+  "performance": {
+    "bundle-bloat": "Bundle excessivamente grande ou dependência pesada sem justificativa",
+    "unnecessary-rerender": "Componente re-renderizando sem mudança de props/state",
+    "missing-optimization": "Otimização ausente (lazy loading, dynamic import, memoization)",
+    "client-component-unnecessary": "Componente marcado como client sem necessidade",
+    "asset-unoptimized": "Asset (imagem, fonte, script) sem otimização adequada",
+    "core-web-vitals": "Impacto negativo em LCP, CLS ou INP"
+  },
+
+  "seo": {
+    "meta-missing": "Meta tag obrigatória ausente ou inadequada",
+    "structured-data-invalid": "JSON-LD ausente, incompleto ou com erros de schema",
+    "heading-hierarchy-broken": "Hierarquia de headings incorreta (h1 duplicado, nível pulado)",
+    "semantic-html-missing": "HTML não-semântico onde deveria ser (div em vez de nav, button, etc)",
+    "indexation-issue": "Problema de indexação (robots, canonical, sitemap, noindex)",
+    "i18n-seo-missing": "SEO multilíngue ausente (hreflang, lang attribute, meta localizada)"
+  },
+
+  "copywriter": {
+    "unclear-copy": "Texto confuso, ambíguo ou que não comunica a ação esperada",
+    "tone-inconsistency": "Tom de voz inconsistente com o padrão do projeto",
+    "translation-literal": "Tradução literal em vez de adaptação cultural natural",
+    "missing-translation": "Texto presente em um idioma mas ausente em outro",
+    "jargon-in-ui": "Jargão técnico em texto voltado ao usuário final",
+    "cta-weak": "CTA fraco, genérico ou que não comunica benefício"
+  }
+}

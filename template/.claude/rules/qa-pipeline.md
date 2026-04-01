@@ -11,8 +11,18 @@ Agentes do pipeline e seus papeis:
 - **@security** — Auditor ofensivo. Pente fino em seguranca: OWASP, injection, validacao, headers, rate limit. Roda em paralelo com @tester.
 - **@reviewer** — Revisor senior. Faz code review direto no codigo, recebe achados do @tester e @security como contexto, emite veredito final e posta no Trello.
 
+Agentes do pipeline estendido (acionados por tipo de card):
+- **@design-qa** — Auditor visual. Valida fidelidade da implementacao ao spec do @designer. Acionado em cards de UI.
+- **@performance** — Auditor de performance. Bundle, runtime, Core Web Vitals. Acionado em cards de deps, features pesadas, pre-release.
+- **@seo** — SEO tecnico. Meta tags, structured data, semantic HTML, indexacao. Acionado em cards de paginas publicas.
+- **@copywriter** — Copy e microcopy. Tom de voz, qualidade multilingue, conversao. Acionado em cards com texto novo.
+
 Agentes de suporte (fora do pipeline, chamados sob demanda):
 - **@planner** — Arquiteto. Cria planos de implementacao, estrutura cards no Trello. Chamado para planejamento, nao para validacao.
+- **@analyst** — Metricas. Le dados do pipeline, identifica padroes, mede saude do time. Chamado em fim de fase, sob demanda, ou pre-release.
+- **@designer** — Design de produto/UX. Propoe specs visuais. Chamado para novas features de UI.
+- **@docs** — Documentacao. Garante sincronia docs/codigo. Chamado sob demanda.
+- **@refactor** — Refatoracao cirurgica em worktree isolada. Chamado sob demanda.
 
 ## Fluxo completo
 
@@ -94,6 +104,80 @@ History | Backlog | Decisoes Pendentes | Colunas das fases | Validation (@tester
 
 Ao criar novas listas de fase, posiciona-las entre "Decisoes Pendentes" e "Validation". Nunca alterar a ordem das colunas fixas.
 
+## Pipeline estendido
+
+Alem do pipeline core (tester + security → reviewer), existe o pipeline estendido que aciona agentes especialistas conforme o tipo de card:
+
+```
+Card de UI nova:        core + @design-qa + @copywriter
+Card de landing page:   core + @seo + @copywriter + @performance
+Card de refactor lib:   core (so)
+Card de infra/deps:     core + @performance
+Pre-release:            core + @performance + @seo (auditoria geral)
+```
+
+O operador (Claude principal) decide quais especialistas chamar com base no escopo do card. O usuario pode instruir especificamente ("roda SEO nesse").
+
+Agentes estendidos rodam em paralelo com o core (ou apos, conforme disponibilidade). Seus relatorios alimentam o @reviewer para o veredito final consolidado.
+
+Formato do comentario no Trello quando agentes estendidos participam:
+
+```
+PIPELINE QA — [DATA]
+
+VALIDACAO @tester — [APROVADO/REPROVADO]
+[resumo]
+
+AUDITORIA @security — [APROVADO/REPROVADO]
+[resumo]
+
+DESIGN QA @design-qa — [APROVADO/REPROVADO]
+[resumo — so se acionado]
+
+COPY @copywriter — [APROVADO/REPROVADO]
+[resumo — so se acionado]
+
+SEO @seo — [APROVADO/REPROVADO]
+[resumo — so se acionado]
+
+PERFORMANCE @performance — [APROVADO/REPROVADO]
+[resumo — so se acionado]
+
+REVISAO @reviewer — [APROVADO/REPROVADO]
+[code review + consolidacao de todos os achados]
+```
+
+## Metricas do pipeline
+
+Toda execucao do pipeline gera uma entrada em `.claude/metrics/pipeline.jsonl`. Schema v1:
+
+```json
+{
+  "v": 1,
+  "date": "2026-04-01",
+  "card_id": "trello-id-real",
+  "card_title": "Titulo do card",
+  "phase": "Fase X",
+  "card_size": "P|M|G",
+  "card_type": "feature|fix|refactor|security|ui|infra",
+  "files_changed": 4,
+  "core": { "tester": "approved|reproved", "security": "approved|reproved", "reviewer": "approved|reproved" },
+  "extended": { "agent-name": "approved|reproved" },
+  "cycles": 1,
+  "findings": { "critical": 0, "high": 1, "medium": 2, "low": 0 },
+  "reproval_reasons": { "agent-name": ["category-id"] },
+  "coverage_delta": 2.3,
+  "lead_time_hours": null,
+  "notes": ""
+}
+```
+
+Categorias de reproval_reasons estao padronizadas em `.claude/metrics/categories.json` — single source of truth. Agentes do pipeline DEVEM usar essas categorias ao classificar seus findings.
+
+O @analyst consome esses dados para gerar relatorios de saude do time e recomendacoes de melhoria.
+
 ## Retroatividade
 
 Este pipeline se aplica retroativamente a fases ja concluidas. Se uma fase foi entregue sem passar pelo pipeline completo, rodar o ciclo do zero sobre o estado atual do codigo.
+
+Metricas anteriores a Fase 9 nao foram coletadas no formato JSONL. O @analyst deve considerar apenas dados a partir do ponto em que o sistema de metricas foi implementado.

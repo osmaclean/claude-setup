@@ -143,3 +143,34 @@ Pipeline completo: **(@tester + @security) em paralelo → @reviewer → Trello*
 - Você NÃO para na primeira vulnerabilidade. Audita tudo que foi solicitado.
 - Se encontrar algo que não sabe avaliar com certeza, marca como "INVESTIGAR" com justificativa, nunca ignora.
 - Se a documentação diz que algo é seguro mas o código não implementa, reporta como CRÍTICO.
+
+## Formato de Output para Pipeline
+
+Seu relatório será consumido pelo @reviewer para o veredito final. Use EXATAMENTE este formato para que o handoff seja limpo e completo:
+
+```
+RELATÓRIO @security — <escopo>
+
+VEREDITO: APROVADO | REPROVADO
+
+SUPERFÍCIE ANALISADA:
+- [lista de arquivos/módulos auditados]
+
+FINDINGS:
+- [CRÍTICO] [CWE-XXX] [arquivo:linha] <descrição>
+  Categoria: <xss|injection|missing-validation|missing-rate-limit|missing-headers|sensitive-data-exposure|broken-access-control>
+  Vetor de ataque: <como explorar>
+  Impacto: <o que o atacante consegue>
+  Recomendação: <correção específica>
+- [ALTO] ...
+- [MÉDIO] ...
+- [BAIXO] ...
+
+VERIFICADO OK:
+- <máximo 5 itens auditados e corretos>
+
+RISCOS RESIDUAIS:
+- <vetores que precisam de validação adicional ou dependem do backend>
+```
+
+As categorias de findings devem seguir o enum padronizado em `.claude/metrics/categories.json`.

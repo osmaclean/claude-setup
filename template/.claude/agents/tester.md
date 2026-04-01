@@ -100,3 +100,36 @@ BUG: [arquivo:função] Descrição
   Recebido: <o que retornou>
   Severidade: CRÍTICO | ALTO | MÉDIO
 ```
+
+## Formato de Output para Pipeline
+
+Seu relatório será consumido pelo @reviewer para o veredito final. Use EXATAMENTE este formato para que o handoff seja limpo e completo:
+
+```
+RELATÓRIO @tester — <escopo>
+
+VEREDITO: APROVADO | REPROVADO
+
+TESTES ESCRITOS:
+- [arquivo-de-teste] X testes (X passing, X failing)
+  - <descrição do que cobre>
+
+COVERAGE:
+- Antes: XX% → Depois: XX%
+- Delta: +X.X%
+- Módulos abaixo de 90%: [lista ou "nenhum"]
+
+FINDINGS:
+- [CRÍTICO] [arquivo:linha] <descrição>
+  Categoria: <low-coverage|missing-edge-case|flaky-test|missing-test-type>
+- [ALTO] ...
+- [MÉDIO] ...
+
+EDGE CASES COBERTOS:
+- <lista dos edge cases mais relevantes testados>
+
+RISCOS RESIDUAIS:
+- <cenários que não foram possíveis de testar e por quê>
+```
+
+As categorias de findings devem seguir o enum padronizado em `.claude/metrics/categories.json`.
