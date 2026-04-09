@@ -17,10 +17,9 @@ process.stdin.on('end', () => {
       '.git/',
     ]
 
+    const basename = normalized.split('/').pop()
     const match = blocked.find((pattern) =>
-      pattern.endsWith('/')
-        ? normalized.includes(pattern)
-        : normalized.endsWith(pattern) || normalized.includes('/' + pattern)
+      pattern.endsWith('/') ? normalized.includes(pattern) : basename === pattern,
     )
 
     if (match) {
