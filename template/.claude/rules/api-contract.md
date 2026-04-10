@@ -2,6 +2,7 @@
 paths:
   - "src/http/routes/**/*.ts"
   - "src/http/controllers/**/*.ts"
+  - "src/http/middlewares/**/*.ts"
   - "src/modules/**/*.routes.ts"
   - "src/modules/**/*.schema.ts"
   - "src/schemas/**/*.ts"
@@ -12,6 +13,12 @@ paths:
 # API Contract — disciplina de contrato
 
 A API é um **contrato público** com consumidores (frontend, integradores, mobile, parceiros). Toda mudança que quebra esse contrato sem aviso é incidente — independente de "estar em produção" ou não. Esta rule define a disciplina mínima.
+
+## Referência cruzada
+
+- **`api-routes.md`** — padrões operacionais de rotas: estrutura, sorting/filtering, request ID, timeouts, health check, graceful degradation, config de segurança por rota.
+- **`security.md`** — auth, rate limit, input validation, multitenancy, error discrimination, supply chain.
+- **`qa-pipeline.md`** — path-matrix que determina quais rules e agentes carregam por arquivo tocado.
 
 ## Princípio fundamental
 
@@ -107,8 +114,8 @@ Quando um endpoint, campo ou comportamento for marcado pra remoção:
 
 **Sucesso:**
 - `2xx` sempre. `200 OK` para GET/PUT/PATCH, `201 Created` para POST que cria recurso, `204 No Content` para DELETE/operações sem corpo.
-- Response shape consistente entre rotas similares. Se `GET /users/:id` retorna `{ user: {...} }`, `GET /companies/:id` não pode retornar `{...}` direto.
-- Listagem paginada **sempre** retorna envelope: `{ items: [...], pagination: { next_cursor, has_more, total? } }`. Nunca array cru no body.
+- Response shape consistente entre rotas similares. Se `GET /users/:id` retorna `{ "data": {...} }`, `GET /companies/:id` não pode retornar `{...}` direto.
+- Listagem paginada **sempre** retorna envelope: `{ "data": [...], "meta": { "cursor": "...", "hasMore": true, "total": 42 } }`. Nunca array cru no body. (Alinhado com `api-routes.md`.)
 
 **Erro — escolher um padrão e nunca misturar:**
 
@@ -127,7 +134,8 @@ Em ambos os padrões:
 - `message`/`detail` é human-readable, pode mudar texto livremente — **não é parte do contrato**.
 - `details` é opcional, contém dados estruturados pra UI montar mensagem específica.
 - Status code HTTP coerente com o `code`: `400` validação, `401` auth, `403` permissão, `404` não encontrado, `409` conflito, `410` gone, `412` precondition failed, `422` semântico inválido, `428` precondition required, `429` rate limit, `5xx` erro de servidor.
-- Mesmo erro = mesmo `code` em toda a API. Padronização de códigos vive em arquivo único.
+- Mesmo erro = mesmo `code` em toda a API.
+- **Registry de error codes**: todos os códigos vivem em arquivo único dedicado (ex: `src/errors/error-codes.ts`, `errors.py`). Novo código = nova entrada lá, nunca string literal espalhada.
 
 ## Precisão numérica e dinheiro
 
@@ -142,7 +150,7 @@ Em ambos os padrões:
 
 ## Empty state — disciplina
 
-- Listagem vazia retorna `{ items: [] }`, **nunca** `{ items: null }`.
+- Listagem vazia retorna `{ "data": [] }`, **nunca** `{ "data": null }`.
 - Coleção opcional retorna array vazio, não `undefined` nem `null`. Cliente faz `.map()` sem checar.
 - Objeto opcional ausente: declarar `null` explicitamente OU omitir campo — **escolher um e nunca misturar na mesma API**. Misturar quebra cliente que faz `if (field === undefined)` vs `if (field === null)`.
 - String vazia (`""`) ≠ `null` ≠ ausente. Decidir o que cada um significa e documentar.
@@ -284,8 +292,8 @@ Quando alguns campos só aparecem pra certas roles (admin vê `internal_notes`, 
 
 - `Content-Type: application/json; charset=utf-8` — sempre.
 - `X-Request-Id` em toda response (gerado se não vier do cliente). Permite correlação com logs.
-- `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` em rotas com rate limit.
-- `Retry-After` em respostas `429` e `503`.
+- `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` em rotas com rate limit. **`Reset` é Unix timestamp em segundos** (não seconds-remaining, não HTTP date) — padrão Stripe/GitHub.
+- `Retry-After` em respostas `429` e `503` — **em segundos** pra consistência.
 - `Cache-Control` explícito em toda resposta — `no-store` por default em rotas autenticadas.
 - `Vary: Authorization` em respostas que dependem de auth — evita cache cross-user em CDN.
 - `ETag` em recursos editáveis (ver Conditional requests acima).
@@ -380,7 +388,7 @@ Toda rota nova ou mudança não-trivial **deve ter design review antes de qualqu
 - **NÃO** retornar entidade do ORM direto — sempre DTO mapeado.
 - **NÃO** usar `request.body as any` ou `request.query as any` — quebra do contrato.
 - **NÃO** declarar schema inline na rota quando puder ser reutilizado — isolar em arquivo dedicado.
-- **NÃO** misturar `snake_case` e `camelCase` na mesma API.
+- **NÃO** misturar `snake_case` e `camelCase` na mesma API. **Escolher um e documentar em CLAUDE.md.** JS/TS projetos tipicamente usam `camelCase`; Python/Ruby tipicamente `snake_case`.
 - **NÃO** expor IDs sequenciais autoincrement.
 - **NÃO** retornar timestamp em formato local — sempre ISO 8601 UTC `Z`.
 - **NÃO** retornar dinheiro como `number` — sempre string em centavos.

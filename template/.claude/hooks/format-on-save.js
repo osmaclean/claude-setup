@@ -1,13 +1,36 @@
 const { execSync } = require('child_process')
+const { existsSync } = require('fs')
+const parseInput = require('./parse-hook-input')
 
-let data = ''
-process.stdin.on('data', (chunk) => { data += chunk })
-process.stdin.on('end', () => {
+const JS_EXTENSIONS = /\.(ts|tsx|js|jsx|json|css)$/
+const PY_EXTENSIONS = /\.py$/
+
+parseInput().then(({ filePath }) => {
+  if (!filePath) process.exit(0)
+
   try {
-    const parsed = JSON.parse(data)
-    const filePath = parsed.tool_input?.file_path || parsed.tool_input?.filePath || ''
-    if (filePath && /\.(ts|tsx|js|jsx|json|css)$/.test(filePath)) {
-      execSync(`npx prettier --write ${JSON.stringify(filePath)}`, { stdio: 'ignore' })
+    if (JS_EXTENSIONS.test(filePath)) {
+      execSync(`npx prettier --write ${JSON.stringify(filePath)}`, {
+        stdio: 'ignore',
+        timeout: 10000,
+      })
+    } else if (PY_EXTENSIONS.test(filePath)) {
+      // Detect available Python formatter: ruff > black > skip
+      try {
+        execSync('ruff --version', { stdio: 'ignore' })
+        execSync(`ruff format ${JSON.stringify(filePath)}`, { stdio: 'ignore', timeout: 10000 })
+      } catch {
+        try {
+          execSync('black --version', { stdio: 'ignore' })
+          execSync(`black --quiet ${JSON.stringify(filePath)}`, { stdio: 'ignore', timeout: 10000 })
+        } catch {
+          // No Python formatter available — skip silently
+        }
+      }
     }
-  } catch {}
+  } catch (err) {
+    process.stderr.write(`Formatter falhou em ${filePath}: ${err.message || 'erro desconhecido'}.`)
+  }
+
+  process.exit(0)
 })

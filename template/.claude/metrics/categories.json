@@ -187,7 +187,11 @@
     "audit-trail": { "description": "Mudança em dado sensível sem audit trail", "default_severity": "high" },
     "soft-delete": { "description": "Hard delete onde deveria ser soft delete (ou vice-versa)", "default_severity": "medium" },
     "backup-recovery": { "description": "Estratégia de backup ou recovery inadequada (RPO/RTO, point-in-time)", "default_severity": "critical" },
-    "autovacuum-tuning": { "description": "Autovacuum mal tunado para o padrão de carga da tabela", "default_severity": "medium" }
+    "autovacuum-tuning": { "description": "Autovacuum mal tunado para o padrão de carga da tabela", "default_severity": "medium" },
+    "data-lifecycle": { "description": "Política de retenção de dados ausente ou inadequada por entidade", "default_severity": "high" },
+    "lgpd-gap": { "description": "Dados pessoais sem mecanismo de exclusão/anonimização implementável", "default_severity": "critical" },
+    "migration-volume-untested": { "description": "Migration não testada com volume realista de dados", "default_severity": "high" },
+    "pii-uncatalogued": { "description": "Dados pessoais (PII) sem catálogo explícito", "default_severity": "medium" }
   },
 
   "devops": {
@@ -226,7 +230,10 @@
     "unit-economics": { "description": "Custo por usuário/request desconhecido ou maior que receita esperada", "default_severity": "medium" },
     "alert-fatigue": { "description": "Alertas ruidosos que causam fadiga e são ignorados", "default_severity": "medium" },
     "missing-runbook": { "description": "Cenário de incidente sem runbook documentado", "default_severity": "medium" },
-    "missing-drill": { "description": "Dependência crítica sem drill de falha testado", "default_severity": "low" }
+    "missing-drill": { "description": "Dependência crítica sem drill de falha testado", "default_severity": "low" },
+    "cost-anomaly": { "description": "Gasto anômalo sem alerta automático de detecção", "default_severity": "medium" },
+    "missing-budget-alert": { "description": "Serviço externo sem budget alert granular configurado", "default_severity": "medium" },
+    "missing-dep-status-monitoring": { "description": "Dependência externa sem monitoramento de status page ou fallback documentado", "default_severity": "medium" }
   },
 
   "api-contract": {
@@ -255,5 +262,103 @@
     "contract-missing-design-review": { "description": "Rota nova implementada sem design review prévio", "default_severity": "medium" },
     "contract-sdk-breaking": { "description": "Mudança que quebra SDK gerado sem versionamento (operationId, tags)", "default_severity": "high" },
     "contract-array-encoding-ambiguous": { "description": "Múltiplos formatos de array em querystring aceitos ao mesmo tempo", "default_severity": "low" }
+  },
+
+  "docs": {
+    "doc-drift-critical": { "description": "Doc que causa dano real se seguido (comando destrutivo, credencial errada, instrução de segurança incorreta)", "default_severity": "critical" },
+    "doc-drift-value": { "description": "Valor numérico no doc (limite, timeout, rate limit) diverge da constante no código", "default_severity": "high" },
+    "doc-drift-endpoint": { "description": "Endpoint, parâmetro ou formato de resposta no doc diverge da implementação real", "default_severity": "high" },
+    "doc-drift-setup": { "description": "Comando de setup/build/test na doc não funciona ou está incorreto", "default_severity": "high" },
+    "doc-drift-env": { "description": "Variável de ambiente não documentada em .env.example ou documentada mas não usada", "default_severity": "high" },
+    "doc-drift-flow": { "description": "Fluxo descrito na doc não corresponde ao comportamento real do código", "default_severity": "medium" },
+    "doc-drift-version": { "description": "Versão de dependência citada na doc está desatualizada vs package.json/lockfile", "default_severity": "low" },
+    "doc-inconsistency": { "description": "Mesma informação em dois docs com valores diferentes (contradição inter-doc)", "default_severity": "high" },
+    "doc-duplication": { "description": "Informação duplicada entre docs em vez de referenciada — raiz de desatualização futura", "default_severity": "medium" },
+    "doc-no-audience": { "description": "Documento sem público-alvo ou propósito claro — ninguém sabe pra quem é", "default_severity": "low" },
+    "doc-claude-infra-drift": { "description": "Infraestrutura do Claude (CLAUDE.md, rules, commands, agents) desatualizada vs código/processo real", "default_severity": "high" },
+    "doc-category-drift": { "description": "Agente usa categoria que não existe em categories.json ou categories.json tem categoria órfã", "default_severity": "medium" }
+  },
+
+  "performance": {
+    "perf-response-time-critical": { "description": "Response time p95 > 2s em operação CRUD ou > 5s em operação complexa", "default_severity": "critical" },
+    "perf-memory-leak": { "description": "Memory leak confirmado — buffer/listener/ref crescendo sem bound", "default_severity": "critical" },
+    "perf-connection-pool-exhaustion": { "description": "Connection pool esgotando sob carga normal — conexões leaking ou pool subdimensionado", "default_severity": "critical" },
+    "perf-n-plus-one": { "description": "N+1 query em hot path — loop fazendo query por item em vez de batch", "default_severity": "high" },
+    "perf-response-time-high": { "description": "Response time p95 > 500ms em CRUD simples ou > 2s em operação complexa", "default_severity": "high" },
+    "perf-payload-oversized": { "description": "Payload de resposta > 1MB sem paginação ou > 100KB em endpoint frequente", "default_severity": "high" },
+    "perf-cold-start-slow": { "description": "Cold start > 5s — imports pesados, plugins eager, ou init pesado no bootstrap", "default_severity": "high" },
+    "perf-dep-heavy": { "description": "Dependência > 1MB sem alternativa mais leve justificada", "default_severity": "high" },
+    "perf-over-fetching": { "description": "Query buscando relacionamentos/campos não usados na response", "default_severity": "medium" },
+    "perf-missing-cache": { "description": "Endpoint de leitura frequente sem estratégia de cache (in-memory, Redis, HTTP headers)", "default_severity": "medium" },
+    "perf-transaction-scope": { "description": "Transaction mantendo lock por tempo desnecessário ou abrangendo I/O externo", "default_severity": "medium" },
+    "perf-import-not-granular": { "description": "Import de módulo inteiro quando só usa uma função — impede tree-shaking", "default_severity": "medium" },
+    "perf-dep-duplicate": { "description": "Duas dependências fazendo a mesma coisa ou versões conflitantes duplicando código", "default_severity": "medium" },
+    "perf-bundle-oversized": { "description": "Bundle/chunk > 300KB (frontend) ou First Load JS > 200KB", "default_severity": "high" },
+    "perf-rerender-unnecessary": { "description": "Componente re-renderizando sem mudança real de props/state (frontend)", "default_severity": "medium" },
+    "perf-missing-compression": { "description": "Compression (gzip/brotli) não habilitada nas responses", "default_severity": "low" },
+    "perf-logging-overhead": { "description": "Serialização de objetos grandes no logger em nível inadequado pra produção", "default_severity": "low" },
+    "perf-missing-etag": { "description": "Recurso que muda pouco sem ETag/If-None-Match — transferência desnecessária", "default_severity": "low" },
+    "perf-cwv-lcp": { "description": "LCP > 2.5s — fontes bloqueando, imagens sem priority, CSS bloqueante (frontend)", "default_severity": "high" },
+    "perf-cwv-cls": { "description": "CLS > 0.1 — imagens sem dimensões, fontes causando FOUT, conteúdo dinâmico sem placeholder (frontend)", "default_severity": "medium" },
+    "perf-cwv-inp": { "description": "INP > 200ms — event handlers pesados, long tasks, falta de debounce (frontend)", "default_severity": "medium" }
+  },
+
+  "seo": {
+    "seo-noindex-public": { "description": "Página pública com noindex — impede indexação de conteúdo que deveria ser encontrável", "default_severity": "critical" },
+    "seo-canonical-wrong": { "description": "Canonical apontando pra URL errada — confunde crawler sobre qual é a versão autoritativa", "default_severity": "critical" },
+    "seo-robots-blocking": { "description": "robots.txt bloqueando conteúdo público importante", "default_severity": "critical" },
+    "seo-soft-404": { "description": "Recurso inexistente retornando 200 em vez de 404 — soft 404 polui índice", "default_severity": "critical" },
+    "seo-title-missing": { "description": "Title ausente em página pública — pior sinal possível pro SERP", "default_severity": "critical" },
+    "seo-status-code-wrong": { "description": "Status code incorreto (200 pra erro, 404 pra redirect) — confunde indexação", "default_severity": "high" },
+    "seo-redirect-chain": { "description": "Redirect chain (A→B→C) — dilui link juice e aumenta latência de crawl", "default_severity": "high" },
+    "seo-og-missing": { "description": "Open Graph incompleto em página compartilhável — preview quebrado em social/chat", "default_severity": "high" },
+    "seo-structured-data-missing": { "description": "Structured data ausente em página que se beneficiaria (product, FAQ, organization)", "default_severity": "high" },
+    "seo-sitemap-outdated": { "description": "Sitemap desatualizado ou ausente — crawler não descobre páginas novas", "default_severity": "high" },
+    "seo-heading-hierarchy": { "description": "Heading hierarchy quebrada (h1 ausente, níveis pulados, múltiplos h1)", "default_severity": "high" },
+    "seo-cache-headers-missing": { "description": "Cache headers ausentes em recursos públicos — crawl budget desperdiçado", "default_severity": "high" },
+    "seo-description-generic": { "description": "Meta description genérica ou duplicada entre páginas — CTR baixo no SERP", "default_severity": "medium" },
+    "seo-alt-text-missing": { "description": "Imagem sem alt text descritivo — crawler não entende o conteúdo visual", "default_severity": "medium" },
+    "seo-hreflang-incomplete": { "description": "hreflang incompleto ou inconsistente entre idiomas", "default_severity": "medium" },
+    "seo-anchor-text-vague": { "description": "Anchor text não descritivo ('clique aqui', 'saiba mais') — perde contexto de link", "default_severity": "low" },
+    "seo-vary-header-missing": { "description": "Header Vary ausente quando response depende de Accept-Language/Encoding", "default_severity": "low" }
+  },
+
+  "copywriter": {
+    "copy-cta-confusing": { "description": "CTA que faz oposto do esperado ou é ambíguo — usuário hesita ou erra", "default_severity": "critical" },
+    "copy-error-misleading": { "description": "Mensagem de erro que orienta o usuário na direção errada", "default_severity": "critical" },
+    "copy-destructive-no-warning": { "description": "Confirmação destrutiva sem descrever consequência — risco de perda de dados", "default_severity": "critical" },
+    "copy-label-ambiguous": { "description": "Label que causa input errado ou confunde a ação esperada", "default_severity": "critical" },
+    "copy-key-missing": { "description": "Key de i18n existe em um idioma mas falta em outro — texto não aparece", "default_severity": "high" },
+    "copy-tone-inconsistent": { "description": "Tom de voz quebrado entre seções — personalidade do produto inconsistente", "default_severity": "high" },
+    "copy-terminology-inconsistent": { "description": "Mesmo conceito usa termos diferentes no mesmo idioma — confunde usuário", "default_severity": "high" },
+    "copy-cta-generic": { "description": "CTA genérico em página crítica de conversão (pricing, signup, onboarding)", "default_severity": "high" },
+    "copy-translation-literal": { "description": "Tradução literal que soa artificial — não adaptada culturalmente", "default_severity": "medium" },
+    "copy-placeholder-not-localized": { "description": "Placeholder/exemplo não localizado (email .com em PT-BR, data em formato americano)", "default_severity": "medium" },
+    "copy-heading-no-action": { "description": "Heading sem verbo de ação ou sem comunicar valor — não engaja no scan", "default_severity": "medium" },
+    "copy-jargon": { "description": "Jargão técnico em texto voltado a usuário não-técnico", "default_severity": "medium" },
+    "copy-aria-label-missing": { "description": "Elemento interativo sem aria-label — invisível pra screen reader", "default_severity": "high" },
+    "copy-alt-text-generic": { "description": "Alt text genérico ('imagem', 'foto') — não descritivo do conteúdo visual", "default_severity": "medium" },
+    "copy-link-text-vague": { "description": "Texto de link genérico ('clique aqui') — sem contexto fora da página pra screen reader", "default_severity": "medium" },
+    "copy-tone-minor": { "description": "Micro-otimização de tom ou variação estilística menor", "default_severity": "low" }
+  },
+
+  "designer": {
+    "design-flow-broken-mobile": { "description": "Fluxo principal quebrado ou impossível de completar em mobile — usuário não consegue realizar a tarefa", "default_severity": "critical" },
+    "design-destructive-no-confirmation": { "description": "Ação destrutiva sem confirmação visual — risco de perda de dados acidental", "default_severity": "critical" },
+    "design-contrast-critical": { "description": "Contraste abaixo de 3:1 em elemento crítico de interação — inacessível", "default_severity": "critical" },
+    "design-feedback-missing-irreversible": { "description": "Feedback visual ausente em ação irreversível — usuário não sabe se ação aconteceu", "default_severity": "critical" },
+    "design-empty-state-no-guidance": { "description": "Empty state sem orientação — usuário não sabe o que fazer a seguir", "default_severity": "high" },
+    "design-hierarchy-inverted": { "description": "Hierarquia visual invertida — ação secundária mais proeminente que a primária", "default_severity": "high" },
+    "design-token-inconsistency": { "description": "Inconsistência grave de design tokens — valores ad hoc quebrando sistema visual", "default_severity": "high" },
+    "design-touch-target-small": { "description": "Touch target < 44x44px em ação primária mobile — difícil de tocar", "default_severity": "high" },
+    "design-animation-blocking": { "description": "Animação que bloqueia interação — usuário espera animação terminar pra agir", "default_severity": "high" },
+    "design-state-missing": { "description": "Estado de componente faltando (hover, disabled, loading, error) — feedback incompleto", "default_severity": "medium" },
+    "design-spacing-inconsistent": { "description": "Spacing inconsistente entre componentes similares — quebra ritmo visual", "default_severity": "medium" },
+    "design-typography-off-scale": { "description": "Tipografia fora da escala definida — tamanho ou peso ad hoc", "default_severity": "medium" },
+    "design-skeleton-vs-spinner": { "description": "Tipo de loading indicator inadequado ao contexto (skeleton vs spinner)", "default_severity": "medium" },
+    "design-responsive-tablet-ignored": { "description": "Layout de tablet não considerado — é mobile esticado ou desktop comprimido", "default_severity": "medium" },
+    "design-reduced-motion-missing": { "description": "Animação sem fallback para prefers-reduced-motion — acessibilidade comprometida", "default_severity": "medium" },
+    "design-animation-refinement": { "description": "Micro-otimização de animação (duração, easing) — refinamento, não problema", "default_severity": "low" },
+    "design-style-variation": { "description": "Variação estilística menor sem impacto funcional — questão de gosto", "default_severity": "low" }
   }
 }

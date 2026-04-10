@@ -54,7 +54,9 @@ scripts/deploy*, scripts/release*             → @devops (mandatório)
 
 # API (frameworks comuns)
 src/http/routes/**, src/api/**,
-  src/controllers/**, app/api/**/route.ts     → api-contract rule + @reviewer carrega rule
+  src/controllers/**, app/api/**/route.ts     → api-routes rule + api-contract rule + @reviewer carrega ambas
+src/http/middlewares/**, src/middleware/**     → api-routes rule + security rule + @reviewer carrega ambas
+src/modules/**/*.routes.ts                    → api-routes rule + api-contract rule + @reviewer carrega ambas
 src/modules/**/*.schema.ts,
   src/**/*.dto.ts                             → api-contract rule + @reviewer carrega rule
 

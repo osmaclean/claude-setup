@@ -1,31 +1,52 @@
-let data = ''
-process.stdin.on('data', (chunk) => { data += chunk })
-process.stdin.on('end', () => {
-  try {
-    const parsed = JSON.parse(data)
-    const filePath = parsed.tool_input?.file_path || parsed.tool_input?.filePath || ''
-    if (!filePath) process.exit(0)
+const parseInput = require('./parse-hook-input')
 
-    const normalized = filePath.replace(/\\/g, '/')
+parseInput().then(({ filePath }) => {
+  if (!filePath) process.exit(0)
 
-    const blocked = [
-      '.env',
-      '.env.local',
-      '.env.production',
-      '.env.development',
-      'package-lock.json',
-      '.git/',
-    ]
+  const normalized = filePath.replace(/\\/g, '/')
+  const basename = normalized.split('/').pop()
 
-    const basename = normalized.split('/').pop()
-    const match = blocked.find((pattern) =>
-      pattern.endsWith('/') ? normalized.includes(pattern) : basename === pattern,
-    )
+  const blockedFiles = [
+    '.env',
+    '.env.local',
+    '.env.production',
+    '.env.development',
+    '.env.staging',
+    'package-lock.json',
+    'yarn.lock',
+    'pnpm-lock.yaml',
+  ]
 
-    if (match) {
-      process.stderr.write(`Bloqueado: ${filePath} é arquivo protegido (${match})`)
-      process.exit(2)
-    }
-  } catch {}
+  const blockedPaths = [
+    '.git/',
+    'node_modules/',
+  ]
+
+  const blockedExtensions = [
+    '.pem',
+    '.key',
+    '.p12',
+    '.pfx',
+    '.jks',
+  ]
+
+  const fileMatch = blockedFiles.find((f) => basename === f)
+  if (fileMatch) {
+    process.stderr.write(`BLOQUEADO: ${filePath} é arquivo protegido (${fileMatch}). Edição manual proibida.`)
+    process.exit(2)
+  }
+
+  const pathMatch = blockedPaths.find((p) => normalized.includes(p))
+  if (pathMatch) {
+    process.stderr.write(`BLOQUEADO: ${filePath} está em diretório protegido (${pathMatch}). Edição manual proibida.`)
+    process.exit(2)
+  }
+
+  const extMatch = blockedExtensions.find((ext) => basename.endsWith(ext))
+  if (extMatch) {
+    process.stderr.write(`BLOQUEADO: ${filePath} é arquivo sensível (${extMatch}). Nunca editar certificados/chaves diretamente.`)
+    process.exit(2)
+  }
+
   process.exit(0)
 })
