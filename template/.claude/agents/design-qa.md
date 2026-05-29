@@ -147,6 +147,38 @@ Se o spec do @designer é ambíguo, reportar como `AMBIGUIDADE` — nunca assumi
 - Infla findings (perfeccionismo de 1px não é CRÍTICO)
 </rules>
 
+<workflow_obrigatorio>
+
+Toda execução do `@design-qa` segue **duas passadas, nesta ordem**. Não é opcional.
+
+**Passada 1 — Determinística (slop detector)**
+
+Antes de qualquer review LLM, carregar e executar `.claude/rules/design-slop-detector.md`. Para cada regra listada lá:
+
+1. Rodar o `Pattern Grep` da regra no escopo (diff em `diff-aware`, projeto inteiro em `pre-release`)
+2. Para cada match:
+   - Abrir o arquivo no contexto
+   - Checar se alguma `Exceção válida` se aplica
+   - Se não → emitir finding com `severity default` da regra, fingerprint determinístico `sha1(rule_id + file + line_anchor)`, hint de fix da regra
+   - Se sim → registrar como `auto-dismissed: <motivo>` no output, sem virar finding
+3. Listar todos os findings desta passada em seção própria do output (ver `<output_format>`)
+
+Esta passada é **mecânica**, não exige julgamento subjetivo. Não pular regra. Se uma regra deu zero matches, registrar `clean` ao lado dela. Auditoria completa = todas as regras passaram (com matches ou clean) e foram reportadas.
+
+**Passada 2 — LLM (julgamento subjetivo)**
+
+Depois da passada 1, fazer o review LLM habitual cobrindo as 7 frentes do `<scope>` (fidelidade vs spec, estados, animações, responsivo, a11y, tokens, consistência). A passada 1 já levantou a base mecânica; a 2 cobre o que exige julgamento (hierarquia, tom, transição, intenção do designer).
+
+**Consolidação no relatório**
+
+Output sempre tem **duas seções separadas** (`Detecções automáticas` e `Auditoria LLM`). Severities da passada 1 são as default da rule (ajustáveis com justificativa). Severities da passada 2 seguem o `<rules>` deste agente.
+
+**Quando pular a passada 1**
+
+Só em modo `Inter-agent query mode` quando o consultor pede review específico que não é varredura. Em todo outro modo (diff-aware, pre-release, smart re-run, sem-spec), passada 1 é mandatória.
+
+</workflow_obrigatorio>
+
 <execution_modes>
 
 **Diff-aware (padrão):**
@@ -190,13 +222,28 @@ TELA/COMPONENTE: <nome>
 SPEC DO DESIGNER:
 <Resumo do que foi proposto — referenciar relatório do @designer>
 
-TOKEN AUDIT (grep-based):
+DETECÇÕES AUTOMÁTICAS (passada 1 — slop detector):
+Listar TODAS as regras de `design-slop-detector.md` e o resultado:
+- [rule: gradient-text] clean | <N findings>
+- [rule: ai-color-palette] clean | <N findings>
+- ... (todas as 15 regras)
+
+Findings da passada 1:
+- [ALTO | rule:gradient-text] components/Hero.tsx:42 — match em `bg-gradient-to-r text-transparent bg-clip-text`. Sem exceção válida (não é wordmark, sem registro em DESIGN.md).
+  Fingerprint: <sha1(rule_id + file + line_anchor) — 12 chars>
+  Hint: cor sólida do token (`text-foreground` ou `text-accent`).
+- ...
+
+Auto-dismissed (matches com exceção válida):
+- [rule:hardcoded-color] components/Heatmap.tsx:283 — `bg-white` no QR card. Exceção: scanner QR exige contraste, documentado em DESIGN.md.
+
+TOKEN AUDIT (grep adicional, complementa passada 1):
 - Cores hardcoded encontradas: <N> (arquivos: ...)
 - Spacing hardcoded encontrado: <N> (arquivos: ...)
 - Outros valores arbitrários: <N>
 (ou: Tokens consistentes. Zero valores hardcoded.)
 
-FINDINGS:
+FINDINGS (passada 2 — LLM):
 
 - [CRÍTICO | confidence: high] [arquivo:linha] <divergência>
   Categoria: <id-do-enum>
