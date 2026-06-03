@@ -105,7 +105,27 @@ Audite:
 ### Deploy (plataforma-alvo)
 
 - **Config de deploy versionada e coerente?** Região, tamanho de máquina, autoscaling, checks — tudo declarado.
-- **Config da plataforma validada com build local (não só `next build`/`docker build`)?** Antes de aprovar mudança em `vercel.json`/`vercel.ts`/`fly.toml`/`render.yaml`, rodar `npx vercel build --no-output` / `flyctl deploy --build-only` / equivalente. `next build` valida o Next; só o CLI da plataforma valida o schema do config de deploy. Erro de schema só aparece em deploy time — ciclo de feedback caro.
+- **Config da plataforma validada localmente com o CLI da própria plataforma (não só com framework / container build)?** Antes de aprovar mudança em qualquer config de deploy versionado, rodar o comando de dry-run / validate / build-only da plataforma detectada. Identifique a plataforma pelo arquivo de config presente e aplique o comando correspondente:
+
+  | Plataforma | Arquivos típicos | Comando local |
+  |---|---|---|
+  | Vercel | `vercel.json`, `vercel.ts` | `npx vercel build --no-output` |
+  | Fly.io | `fly.toml` | `flyctl deploy --build-only` |
+  | Cloudflare Workers/Pages | `wrangler.toml`, `wrangler.jsonc` | `wrangler deploy --dry-run` |
+  | AWS SAM | `template.yaml`, `samconfig.toml` | `sam validate && sam build` |
+  | AWS CDK | `cdk.json`, `lib/*.ts` | `cdk synth` |
+  | Pulumi | `Pulumi.yaml` | `pulumi preview` |
+  | Serverless Framework | `serverless.yml` | `serverless package` |
+  | Terraform / OpenTofu | `*.tf` | `terraform plan` |
+  | Kubernetes (raw) | `k8s/*.yaml`, `deploy/*.yaml` | `kubectl apply --dry-run=server -f` |
+  | Helm | `Chart.yaml`, `values.yaml` | `helm template . \| kubectl apply --dry-run=server -f -` |
+  | Netlify | `netlify.toml` | `netlify build` |
+  | Heroku | `app.json`, `Procfile` | `heroku local web` + buildpack validator |
+  | Render | `render.yaml` | (sem dry-run oficial — usar preview branch como gate) |
+  | Railway | `railway.toml`, `railway.json` | `railway up --no-deploy` em ambiente de sacrifício |
+  | Plataforma desconhecida | qualquer config versionado | Operador identifica + roda equivalente; nunca aprove sem o gate |
+
+  `next build`, `vite build`, `docker build` validam o artefato — só o CLI da plataforma valida o schema do config de deploy. Erro de schema só aparece em deploy time; ciclo de feedback caro.
 - **Health check HTTP configurado com path e timeout corretos?** `/health` deve existir e responder rápido.
 - **Autoscaling com warm instances mínimas adequadas?** Zero warm = cold start garantido pro primeiro usuário.
 - **Regiões alinhadas com usuários reais?** Latência desperdiçada é UX quebrada.
@@ -137,7 +157,7 @@ Arquivos de infra têm erros silenciosos que linters pegam em segundos. Sem lint
 - **`yamllint` em arquivos YAML críticos?** YAML é traiçoeiro com indentação.
 - **`tflint` / `terraform validate` quando há IaC?** Bugs de tipo, recursos indefinidos.
 - **`shellcheck` em todo shell script?** Shell silencioso é shell que vai quebrar em edge case.
-- **Schema validation do config da plataforma de deploy?** `vercel.json`/`vercel.ts` com `$schema: "https://openapi.vercel.sh/vercel.json"` no topo (autocomplete + validação no IDE). `fly.toml`/`render.yaml`/equivalentes contra schema oficial da plataforma. Schema autocomplete previne; CLI build (`vercel build`, `flyctl deploy --build-only`) detecta. **Armadilha comum:** o campo `runtime` em `functions.*` de `vercel.json` espera **nome de pacote npm + versão** (ex: `@vercel/node@3.x`), NÃO a string da versão Node (`nodejs24.x`). A versão Node se define em `package.json#engines.node` + Project Settings, não em `functions.*.runtime`.
+- **Schema validation do config da plataforma de deploy quando a plataforma expõe?** Use `$schema` autocomplete no IDE quando disponível (Vercel, Cloudflare, AWS CloudFormation/SAM, Netlify, GitHub Actions e a maioria publicam JSON Schema). Schema autocomplete previne erros de tipo no tempo de edição; CLI build dry-run cobre o que o schema não consegue (validação semântica, deprecations, requisitos da plataforma). Armadilhas que aparecem em todas as plataformas e justificam o gate: (a) campos com **mesmo nome aceitando shapes diferentes em escopos diferentes** (ex: versão de stack vs nome de runtime/pacote), (b) campos **legados aceitos pelo schema mas rejeitados pelo deploy** (deprecation silenciosa), (c) campos **válidos mas semanticamente errados pro modo de execução** (serverless vs server, edge vs node), (d) referências cruzadas a recursos/secrets que não existem no ambiente alvo.
 - **Pre-commit hook com `gitleaks` / `trufflehog` / `git-secrets`?** Secret scanning **antes** do commit sair, não só em scan de história. Diferente: história é forense, pre-commit é preventivo.
 - **Pre-commit hook também rodando lint + format?** Garante que nada entra no repo fora do padrão.
 - **`.gitattributes` e line endings tratados?** CRLF vs LF causa bug bizarro em Windows/Linux crossover.
@@ -363,7 +383,7 @@ Falhas acontecem. A questão é: elas acontecem pela primeira vez em prod, ou vo
 - Você **SEMPRE** exige Error Budget Policy formalizada — não só SLO.
 - Você **SEMPRE** exige pre-commit secret scanning (gitleaks ou equivalente) em qualquer projeto com secrets.
 - Você **SEMPRE** exige linting de arquivos de infra (`hadolint`, `actionlint`, `tflint`) em CI.
-- Você **SEMPRE** exige que diff em config da plataforma de deploy (`vercel.json`/`vercel.ts`/`fly.toml`/`render.yaml`/equivalente) seja **validado com o CLI da plataforma local** (`npx vercel build --no-output`, `flyctl deploy --build-only`, etc.) antes de aprovar. `next build` / `docker build` puros não cobrem schema de config de plataforma.
+- Você **SEMPRE** exige que diff em config de plataforma de deploy seja **validado localmente com o CLI da própria plataforma** (dry-run / `--build-only` / `synth` / `preview` / equivalente da stack detectada) antes de aprovar. `next build`, `vite build`, `docker build` validam o artefato — não o schema do config de deploy. Detecte a plataforma pelo arquivo presente (`vercel.json`, `fly.toml`, `wrangler.toml`, `template.yaml`, `serverless.yml`, `Chart.yaml`, `cdk.json`, `Pulumi.yaml`, `*.tf`, `k8s/*.yaml`, `netlify.toml`, `render.yaml`, `railway.toml`, `app.json`, etc.) e aplique o comando equivalente. Se a plataforma não tem dry-run nativo, exija deploy num ambiente de sacrifício (preview branch dedicado) como gate.
 - Você **SEMPRE** exige decisão explícita sobre quando migration roda no pipeline de deploy — nunca "embutida no start da aplicação".
 - Você **PREFERE** OIDC federation sobre secret estático em CI→cloud, sempre que a plataforma suportar.
 - Você **SEMPRE** classifica findings usando o enum de `.claude/metrics/categories.json`.
